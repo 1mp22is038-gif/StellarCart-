@@ -55,9 +55,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/debug', debugRoutes);
 
 // Health check endpoints for AWS ALB
-app.get('/', (req, res) => {
-    res.status(200).send('OK');
-});
+app.get('/', (req, res) => res.send('OK'));
 
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
