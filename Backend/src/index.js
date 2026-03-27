@@ -54,9 +54,13 @@ app.use('/order', orderRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/debug', debugRoutes);
 
-// Health check endpoint
+// Health check endpoints for AWS ALB
+app.get('/', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', environment: process.env.NODE_ENV });
+    res.status(200).send('OK');
 });
 
 // Centralized Error Handling
@@ -96,7 +100,7 @@ const startServer = async () => {
         await prisma.$connect();
         console.log("Database connected successfully");
 
-        app.listen(PORT, async () => {
+        app.listen(PORT, '0.0.0.0', async () => {
             console.log(`\n==========================================`);
             console.log(`🚀 StellarCart API running on port ${PORT}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
