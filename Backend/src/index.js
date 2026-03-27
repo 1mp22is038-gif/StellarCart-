@@ -14,31 +14,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS Configuration
-const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    process.env.FRONTEND_URL
-].filter(Boolean);
+const allowedOrigins = ['*'];
 
 const corsOptions = {
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        
-        try {
-            const originUrl = new URL(origin);
-            if (originUrl.hostname === 'localhost' || originUrl.hostname === '127.0.0.1') {
-                return callback(null, true);
-            }
-        } catch (e) {
-            // Fallback for invalid URLs
-        }
-        
-        if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
-            return callback(null, true);
-        }
-
-        callback(new Error('Not allowed by CORS'));
-    },
+    origin: '*',
     credentials: true,
     optionsSuccessStatus: 200
 };
