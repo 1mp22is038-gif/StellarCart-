@@ -15,10 +15,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS Configuration
-const allowedOrigins = ['*'];
+const allowedOrigins = ['https://prajwalgowda.online', 'http://localhost:3000'];
 
 const corsOptions = {
-    origin: '*',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     optionsSuccessStatus: 200
 };
