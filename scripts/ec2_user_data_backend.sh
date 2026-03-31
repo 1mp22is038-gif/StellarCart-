@@ -30,22 +30,16 @@ git clone https://github.com/1mp22is038-gif/StellarCart-.git
 cd StellarCart-/Backend
 
 # 5. Set up Environment Variables (.env)
-# ⚠️ REPLACE THE PLACEHOLDERS BELOW WITH YOUR ACTUAL PRODUCTION VALUES
 cat <<EOT > .env
 NODE_ENV=production
 PORT=5000
-DATABASE_URL="your_production_postgresql_database_url_here"
-JWT_SECRET="your_production_jwt_secret_here"
-FRONTEND_URL="http://your-frontend-domain.com"
+DATABASE_URL="postgresql://app_user:StrongAppPass123@10.0.172.144:5432/app_db"
+JWT_SECRET="super-secret-key-1234"
+FRONTEND_URL="*"
 EOT
 
-# 6. Install dependencies and set up Prisma
-npm install
-npx prisma generate
-
-# Note: Automatically pushing schema changes to prod database with `db push` 
-# might cause data loss if you have a complex schema. Using `prisma migrate deploy` is normally better for production.
-npx prisma db push
+# 6. Install dependencies
+npm install --omit=dev
 
 # 7. Start the application with PM2
 pm2 start src/index.js --name "stellar-backend"
