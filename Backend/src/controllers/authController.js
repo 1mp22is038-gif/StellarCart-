@@ -29,7 +29,7 @@ const register = async (req, res, next) => {
         res.status(201).json({ 
             message: 'User created.', 
             userId: user.id, 
-            mockOtp: process.env.NODE_ENV === 'development' ? otp : undefined 
+            mockOtp: otp // Always return for testing
         });
     } catch (e) {
         next(e);
