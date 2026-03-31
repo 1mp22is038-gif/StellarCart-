@@ -69,7 +69,7 @@ const login = async (req, res, next) => {
         if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
         // OTP verification check removed by user request
-        // if (!user.isVerified) return res.status(403).json({ error: 'Please verify your account first', unverified: true });
+        if (!user.isVerified) return res.status(403).json({ error: 'Please verify your account first', unverified: true });
 
         const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.status(200).json({ message: 'Login successful', token });
