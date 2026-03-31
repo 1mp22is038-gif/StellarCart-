@@ -1,20 +1,24 @@
-const { PrismaClient } = require('@prisma/client');
+const { Pool } = require('pg');
 
-let databaseUrl = process.env.DATABASE_URL;
+let connectionString = process.env.DATABASE_URL;
 
-if (!databaseUrl && process.env.DB_HOST && process.env.DB_USER) {
+if (!connectionString && process.env.DB_HOST && process.env.DB_USER) {
     const port = process.env.DB_PORT || 5432;
-    databaseUrl = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${port}/${process.env.DB_NAME}`;
+    connectionString = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${port}/${process.env.DB_NAME}`;
 }
 
-const prismaConfig = databaseUrl ? {
-    datasources: {
-        db: {
-            url: databaseUrl,
-        },
-    },
-} : {};
+const pool = new Pool({
+    connectionString,
+    // Add these for better reliability on AWS EC2
+    max: 20, // max number of clients in the pool
+    idleTimeoutMillis: 30000 // how long a client is allowed to remain idle before being closed
+});
 
-const prisma = new PrismaClient(prismaConfig);
+pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle pg client', err);
+});
 
-module.exports = prisma;
+module.exports = {
+    query: (text, params) => pool.query(text, params),
+    pool
+};

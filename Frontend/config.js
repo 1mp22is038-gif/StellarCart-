@@ -1,5 +1,4 @@
 const CONFIG = {
-    API_URL: window.location.hostname === '127.0.0.1' 
-        ? "http://127.0.0.1:5000" 
-        : "http://localhost:5000"
+    // API_URL: "https://api.prajwalgowda.online" // <-- Production
+    API_URL: "http://localhost:5000" // <-- Local Testing
 };

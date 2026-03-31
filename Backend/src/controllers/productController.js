@@ -1,9 +1,9 @@
-const prisma = require('../../db');
+const db = require('../../db');
 
 const getProducts = async (req, res, next) => {
     try {
-        const products = await prisma.product.findMany();
-        res.json(products);
+        const { rows } = await db.query('SELECT * FROM "Product" ORDER BY id ASC');
+        res.json(rows);
     } catch (error) {
         next(error);
     }

@@ -1,6 +1,7 @@
-const prisma = require('../../db');
+const db = require('../../db');
 
 const createOrder = async (req, res, next) => {
+    const client = await db.pool.connect();
     try {
         const { items } = req.body; 
         const userId = req.user.id; 
@@ -19,7 +20,8 @@ const createOrder = async (req, res, next) => {
 
             if (!productId || !quantity || quantity <= 0) continue;
 
-            const product = await prisma.product.findUnique({ where: { id: productId } });
+            const { rows } = await client.query('SELECT * FROM "Product" WHERE id = $1', [productId]);
+            const product = rows[0];
             
             if (!product) {
                 return res.status(404).json({ error: `Product with ID ${productId} not found` });
@@ -47,24 +49,29 @@ const createOrder = async (req, res, next) => {
             return res.status(400).json({ error: 'No valid items to place an order' });
         }
 
-        // 2. Create Order and nested OrderItems in ONE atomic operation
-        const order = await prisma.order.create({
-            data: {
-                userId,
-                total,
-                items: {
-                    create: validItems
-                }
-            },
-            include: {
-                items: true
-            }
-        });
+        // 2. Create Order and nested OrderItems in ONE atomic operation using pg transaction
+        await client.query('BEGIN');
+        const orderResult = await client.query(
+            'INSERT INTO "Order" ("userId", total) VALUES ($1, $2) RETURNING id',
+            [userId, total]
+        );
+        const orderId = orderResult.rows[0].id;
 
-        console.log(`[ORDER] Placed successfully! Order ID: ${order.id}, Total: ₹${total}`);
-        res.status(201).json({ message: 'Order created', data: order });
+        for (const vItem of validItems) {
+            await client.query(
+                'INSERT INTO "OrderItem" ("orderId", "productId", quantity, price, subtotal) VALUES ($1, $2, $3, $4, $5)',
+                [orderId, vItem.productId, vItem.quantity, vItem.price, vItem.subtotal]
+            );
+        }
+        await client.query('COMMIT');
+
+        console.log(`[ORDER] Placed successfully! Order ID: ${orderId}, Total: ₹${total}`);
+        res.status(201).json({ message: 'Order created', data: { id: orderId, total } });
     } catch (error) {
+        await client.query('ROLLBACK');
         next(error);
+    } finally {
+        client.release();
     }
 };
 
@@ -72,36 +79,26 @@ const getOrders = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
-        const orders = await prisma.order.findMany({
-            where: { userId },
-            include: {
-                items: {
-                    include: { product: true }
-                },
-                user: {
-                    select: { name: true }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+        const query = `
+            SELECT 
+                o.id as "orderId",
+                o."createdAt",
+                u.name as "userName",
+                p.name as "productName",
+                oi.price,
+                oi.quantity,
+                oi.subtotal as total
+            FROM "Order" o
+            JOIN "User" u ON o."userId" = u.id
+            JOIN "OrderItem" oi ON oi."orderId" = o.id
+            JOIN "Product" p ON oi."productId" = p.id
+            WHERE o."userId" = $1
+            ORDER BY o."createdAt" DESC
+        `;
+        
+        const { rows } = await db.query(query);
 
-        // Flatten response for backwards-compatible item loops
-        const formattedOrders = [];
-        orders.forEach(order => {
-            order.items.forEach(item => {
-                formattedOrders.push({
-                    orderId: order.id,
-                    userName: order.user.name,
-                    productName: item.product.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    total: item.subtotal, // Subtotal for this flat line
-                    createdAt: order.createdAt
-                });
-            });
-        });
-
-        res.status(200).json(formattedOrders);
+        res.status(200).json(rows);
     } catch (error) {
         next(error);
     }

@@ -1,14 +1,19 @@
-const prisma = require('../../db');
+const db = require('../../db');
 
 const getDebugOrders = async (req, res, next) => {
     try {
-        const orders = await prisma.order.findMany({
-            include: { 
-                user: { select: { name: true, email: true } }, 
-                items: { include: { product: true } } 
-            }
-        });
-        res.status(200).json(orders);
+        const query = `
+            SELECT o.id, o."userId", o.total, o."createdAt",
+                   u.name as "userName", u.email as "userEmail",
+                   oi.id as "itemId", oi."productId", oi.quantity, oi.price, oi.subtotal,
+                   p.name as "productName", p."imageUrl"
+            FROM "Order" o
+            JOIN "User" u ON o."userId" = u.id
+            JOIN "OrderItem" oi ON oi."orderId" = o.id
+            JOIN "Product" p ON oi."productId" = p.id
+        `;
+        const { rows } = await db.query(query);
+        res.status(200).json(rows);
     } catch (e) {
         next(e);
     }
@@ -16,8 +21,8 @@ const getDebugOrders = async (req, res, next) => {
 
 const getDebugProducts = async (req, res, next) => {
     try {
-        const products = await prisma.product.findMany();
-        res.status(200).json(products);
+        const { rows } = await db.query('SELECT * FROM "Product"');
+        res.status(200).json(rows);
     } catch (e) {
         next(e);
     }
@@ -25,17 +30,8 @@ const getDebugProducts = async (req, res, next) => {
 
 const getDebugUsers = async (req, res, next) => {
     try {
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                isVerified: true,
-                createdAt: true
-            }
-        });
-        res.status(200).json(users);
+        const { rows } = await db.query('SELECT id, name, email, phone, "isVerified", "createdAt" FROM "User"');
+        res.status(200).json(rows);
     } catch (e) {
         next(e);
     }
