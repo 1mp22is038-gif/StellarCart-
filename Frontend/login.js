@@ -62,8 +62,9 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
         if (!res.ok) throw new Error(data.error);
 
         registeredEmail = email;
-        showToast("Success! Your OTP is: " + data.mockOtp, "success");
-        showBox("otp-box");
+        showToast(data.message, "success");
+        showBox("login-box");
+        document.getElementById("login-email").value = email;
     } catch (err) {
         showToast(err.message, "error");
     }

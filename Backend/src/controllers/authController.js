@@ -15,21 +15,15 @@ const register = async (req, res, next) => {
         if (existingRows.length > 0) return res.status(400).json({ error: 'Email already exists' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const otp = generateOTP();
-        const otpExpiresAt = new Date(Date.now() + 10 * 60000); // 10 mins
-
         const { rows: insertRows } = await db.query(
-            'INSERT INTO "User" (name, phone, email, password, otp, "otpExpiresAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [name, phone, email, hashedPassword, otp, otpExpiresAt]
+            'INSERT INTO "User" (name, phone, email, password, "isVerified") VALUES ($1, $2, $3, $4, true) RETURNING id',
+            [name, phone, email, hashedPassword]
         );
         const user = insertRows[0];
 
-        await sendOTP(email, otp);
-
         res.status(201).json({ 
-            message: 'User created.', 
-            userId: user.id, 
-            mockOtp: otp // Always return for testing
+            message: 'User created successfully! You can now login.', 
+            userId: user.id
         });
     } catch (e) {
         next(e);
@@ -74,7 +68,8 @@ const login = async (req, res, next) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
-        if (!user.isVerified) return res.status(403).json({ error: 'Please verify your account first', unverified: true });
+        // OTP verification check removed by user request
+        // if (!user.isVerified) return res.status(403).json({ error: 'Please verify your account first', unverified: true });
 
         const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.status(200).json({ message: 'Login successful', token });
