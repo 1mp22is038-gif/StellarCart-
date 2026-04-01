@@ -1,4 +1,7 @@
 const db = require('../../db');
+const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+
+const sns = new SNSClient({ region: "ap-south-1" });
 
 const createOrder = async (req, res, next) => {
     const client = await db.pool.connect();
@@ -64,6 +67,20 @@ const createOrder = async (req, res, next) => {
             );
         }
         await client.query('COMMIT');
+
+        // 3. Trigger SNS for automated email notification
+        try {
+            await sns.send(new PublishCommand({
+                TopicArn: "arn:aws:sns:ap-south-1:505947591242:order-events",
+                Message: JSON.stringify({
+                    email: req.user.email,
+                    orderId: orderId
+                })
+            }));
+            console.log(`[SNS] Notification sent for Order ID: ${orderId}`);
+        } catch (snsError) {
+            console.error(`[SNS] Failed to send notification: ${snsError.message}`);
+        }
 
         console.log(`[ORDER] Placed successfully! Order ID: ${orderId}, Total: ₹${total}`);
         res.status(201).json({ message: 'Order created', data: { id: orderId, total } });
