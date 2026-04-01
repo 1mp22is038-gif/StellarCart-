@@ -6,7 +6,14 @@ echo "Starting EC2 User Data script for Backend..."
 
 # 1. Update system and install required system dependencies
 apt-get update -y
-apt-get install -y git curl build-essential
+apt-get install -y git curl build-essential ruby-full wget
+
+# 1.5 Install AWS CodeDeploy Agent
+cd /home/ubuntu
+wget https://aws-codedeploy-ap-south-1.s3.ap-south-1.amazonaws.com/latest/install
+chmod +x ./install
+./install auto
+service codedeploy-agent start
 
 # 2. Install Node.js 18 (matches the version in before_install.sh)
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
