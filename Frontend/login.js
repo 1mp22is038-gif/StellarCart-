@@ -29,13 +29,19 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     const password = document.getElementById("login-password").value;
 
     try {
-        const res = await fetch(`${API}/auth/login`, {
+        const res = await fetch(`${API}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            data = await res.json();
+        } else {
+            throw new Error(`Server returned a ${res.status} error (Not JSON). Is the API URL correct?`);
+        }
+        if (!res.ok) throw new Error(data.error || "Login failed.");
 
         localStorage.setItem("token", data.token);
         window.location.href = "index.html";
@@ -53,13 +59,19 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
     const password = document.getElementById("reg-password").value;
 
     try {
-        const res = await fetch(`${API}/auth/register`, {
+        const res = await fetch(`${API}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, phone, email, password })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            data = await res.json();
+        } else {
+            throw new Error(`Server returned a ${res.status} error (Not JSON). Is the API URL correct?`);
+        }
+        if (!res.ok) throw new Error(data.error || "Registration failed.");
 
         registeredEmail = email;
         showToast(data.message, "success");
@@ -76,13 +88,19 @@ document.getElementById("otp-form").addEventListener("submit", async (e) => {
     const otp = document.getElementById("verify-otp").value;
 
     try {
-        const res = await fetch(`${API}/auth/verify`, {
+        const res = await fetch(`${API}/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: registeredEmail, otp })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            data = await res.json();
+        } else {
+            throw new Error(`Server returned a ${res.status} error (Not JSON). Is the API URL correct?`);
+        }
+        if (!res.ok) throw new Error(data.error || "Verification failed.");
 
         showToast("Verified! Please Login.", "success");
         document.getElementById("login-email").value = registeredEmail;
