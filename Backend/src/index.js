@@ -33,12 +33,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/debug', debugRoutes);
 
 // LB Aliases for new architecture
-app.use('/api/login', (req, res, next) => { req.url = '/login'; authRoutes(req, res, next); });
-app.use('/api/register', (req, res, next) => { req.url = '/register'; authRoutes(req, res, next); });
-app.use('/api/verify', (req, res, next) => { req.url = '/verify'; authRoutes(req, res, next); });
 app.use('/api/products', productRoutes);
 app.use('/api/order', orderRoutes);
-app.use('/api', authRoutes); // as a fallback for any /api/login etc if exactly mapped
+app.use('/api', authRoutes); // catches /api/login, /api/register, /api/verify
 
 // Health check endpoints for AWS ALB
 app.get('/', (req, res) => {
