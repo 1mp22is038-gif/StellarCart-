@@ -22,15 +22,10 @@ npm install -g pm2
 sudo -u appuser -i <<'EOF'
 cd /home/appuser
 
-# 👉 FIX 1: Avoid deleting repo blindly. Clone if new, otherwise pull latest changes.
-if [ ! -d "StellarCart-" ]; then
-  git clone https://github.com/1mp22is038-gif/StellarCart-.git
-  cd StellarCart-/Backend
-else
-  cd StellarCart-/Backend
-  # Pull latest code in case MIG instance just restarted
-  git pull origin main
-fi
+# Force a fresh pull every time to prevent dubious ownership issues or merge conflicts
+rm -rf StellarCart-
+git clone https://github.com/1mp22is038-gif/StellarCart-.git
+cd StellarCart-/Backend
 
 # 👉 FIX 2: Set up Environment Variables (.env) with Private GCP PostgreSQL IP
 cat <<EOT > .env
