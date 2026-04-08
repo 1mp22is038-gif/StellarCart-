@@ -8,7 +8,9 @@ steps:
     args:
       - '-c'
       - |
+        set -e
         echo "Deploying Frontend to Cloud Storage bucket: ${_FRONTEND_BUCKET}"
+
         gsutil -m rsync -r -d ./Frontend gs://${_FRONTEND_BUCKET}
 
   # ---------------------------------------------------------
@@ -20,6 +22,7 @@ steps:
     args:
       - '-c'
       - |
+        set -e
         echo "Triggering rolling restart for MIG: ${_MIG_NAME}"
 
         gcloud compute instance-groups managed rolling-action restart ${_MIG_NAME} \
