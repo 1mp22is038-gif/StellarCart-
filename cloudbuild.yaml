@@ -28,7 +28,7 @@ steps:
 substitutions:
   _REGION: 'asia-south1'
   _MIG_NAME: 'steller-group'
-  _FRONTEND_BUCKET: 'stellarcart-static-frontend'
+  _FRONTEND_BUCKET: 'migrated-bucket-aws-gcp'
 
 options:
   logging: CLOUD_LOGGING_ONLY
