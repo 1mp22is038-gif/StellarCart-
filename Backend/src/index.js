@@ -15,20 +15,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS Configuration
-const allowedOrigins = ['https://prajwalgowda.online', 'http://localhost:3000'];
-
-const corsOptions = {
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+app.options("*", cors()); // handle preflight
 app.use(express.json());
 
 // Main Routes
