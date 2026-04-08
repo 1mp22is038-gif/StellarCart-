@@ -93,7 +93,7 @@ const startServer = async () => {
             console.log(`\n==========================================`);
             console.log(`🚀 StellarCart API running on port ${PORT}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-            console.log(`🛡️  CORS allowed for: ${allowedOrigins.join(', ')}`);
+            console.log(`🛡️  CORS allowed for: *`);
             console.log(`==========================================\n`);
             
             // Seed DB on start
