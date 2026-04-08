@@ -1,6 +1,6 @@
 steps:
   # ---------------------------------------------------------
-  # 1. FRONTEND: Deploy static assets to Object Storage (GCS)
+  # 1. FRONTEND: Deploy static assets to GCS
   # ---------------------------------------------------------
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'Deploy-Frontend-GCS'
@@ -9,64 +9,26 @@ steps:
       - '-c'
       - |
         echo "Deploying Frontend to Cloud Storage bucket: ${_FRONTEND_BUCKET}"
-        # Sync the Frontend directory to the bucket
         gsutil -m rsync -r -d ./Frontend gs://${_FRONTEND_BUCKET}
-        
-        # Optional: Set cache-control headers for better performance
-        # gsutil -m setmeta -h "Cache-Control:public, max-age=3600" gs://${_FRONTEND_BUCKET}/**/*.js
 
   # ---------------------------------------------------------
-  # 2. BACKEND: Deploy to Linux Virtual Machine (Compute Engine)
+  # 2. BACKEND: Deploy via MIG Rolling Restart
   # ---------------------------------------------------------
-  # Strategy: Package the code, transfer via IAP/SSH to the VM, and restart PM2
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'Deploy-Backend-VM'
+    id: 'Deploy-Backend-MIG'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Packaging Backend..."
-        tar -czf backend-deployment.tar.gz ./Backend
-        
-        echo "Transferring sequence to VM: ${_BACKEND_VM_NAME} in zone: ${_ZONE}"
-        # Copy the tarball to the VM
-        gcloud compute scp --zone=${_ZONE} --tunnel-through-iap backend-deployment.tar.gz ${_VM_USER}@${_BACKEND_VM_NAME}:~
-        
-        echo "Running installation on VM..."
-        # SSH into the VM, unpack, install deps, and restart PM2
-        gcloud compute ssh --zone=${_ZONE} --tunnel-through-iap ${_VM_USER}@${_BACKEND_VM_NAME} --command="
-          mkdir -p ~/app-backend &&
-          tar -xzf ~/backend-deployment.tar.gz -C ~/app-backend &&
-          cd ~/app-backend/Backend &&
-          npm install --omit=dev &&
-          pm2 restart stellar-backend || pm2 start src/index.js --name 'stellar-backend' &&
-          pm2 save
-        "
+        echo "Triggering rolling restart for MIG: ${_MIG_NAME}"
 
-  # ---------------------------------------------------------
-  # 3. (FUTURE) EVENT-DRIVEN: Deploy Cloud Function for email
-  # (Placeholder for the serverless worker component)
-  # ---------------------------------------------------------
-  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  #   id: 'Deploy-Email-Worker'
-  #   args:
-  #     - gcloud
-  #     - functions
-  #     - deploy
-  #     - NotificationWorker
-  #     - --region=${_REGION}
-  #     - --source=./Worker
-  #     - --trigger-topic=${_ORDER_TOPIC}
-  #     - --runtime=nodejs18
-  #     - --entry-point=processOrderEvent
+        gcloud compute instance-groups managed rolling-action restart ${_MIG_NAME} \
+          --region=${_REGION}
 
 substitutions:
-  _ZONE: 'us-central1-a'
-  _REGION: 'us-central1'
+  _REGION: 'asia-south1'
+  _MIG_NAME: 'steller-group'
   _FRONTEND_BUCKET: 'stellarcart-static-frontend'
-  _BACKEND_VM_NAME: 'stellarcart-backend-instance'
-  _VM_USER: 'ubuntu'
-  _ORDER_TOPIC: 'order-events'
 
 options:
   logging: CLOUD_LOGGING_ONLY
