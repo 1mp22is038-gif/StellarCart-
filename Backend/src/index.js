@@ -20,6 +20,7 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.options("/*", cors()); // handle preflight cleanly
 app.use(express.json());
 
 // Main Routes
@@ -43,6 +44,10 @@ app.get('/', (req, res) => {
 
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
+});
+
+app.get('/api/health', (req, res) => {
+    res.status(200).send('API OK');
 });
 
 // Centralized Error Handling
