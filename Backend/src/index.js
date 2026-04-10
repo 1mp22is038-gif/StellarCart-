@@ -35,7 +35,7 @@ app.use('/api/debug', debugRoutes);
 // LB Aliases for new architecture
 app.use('/api/products', productRoutes);
 app.use('/api/order', orderRoutes);
-app.use('/api', authRoutes); // catches /api/login, /api/register, /api/verify
+app.use('/api/auth', authRoutes); // catches /api/auth/login, /api/auth/register, /api/auth/verify
 
 // Health check endpoints for AWS ALB
 app.get('/', (req, res) => {

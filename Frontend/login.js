@@ -1,4 +1,4 @@
-const API = CONFIG.API_URL;
+const API = "http://34.160.87.107/api";
 
 let registeredEmail = "";
 
@@ -29,7 +29,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     const password = document.getElementById("login-password").value;
 
     try {
-        const res = await fetch(`${API}/login`, {
+        const res = await fetch(`${API}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
@@ -59,7 +59,7 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
     const password = document.getElementById("reg-password").value;
 
     try {
-        const res = await fetch(`${API}/register`, {
+        const res = await fetch(`${API}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, phone, email, password })
@@ -88,7 +88,7 @@ document.getElementById("otp-form").addEventListener("submit", async (e) => {
     const otp = document.getElementById("verify-otp").value;
 
     try {
-        const res = await fetch(`${API}/verify`, {
+        const res = await fetch(`${API}/auth/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: registeredEmail, otp })
