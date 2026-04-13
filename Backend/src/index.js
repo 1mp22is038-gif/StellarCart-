@@ -20,12 +20,14 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.options("/*", cors()); // handle preflight cleanly
 app.use(express.json());
 
 // Main Routes
+console.log('[BOOT] MOUNTING /auth routes...');
 app.use('/auth', authRoutes);
+console.log('[BOOT] MOUNTING /products routes...');
 app.use('/products', productRoutes);
+console.log('[BOOT] MOUNTING /order routes...');
 app.use('/order', orderRoutes);
 
 // User-friendly aliases requested by user
@@ -33,9 +35,13 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/debug', debugRoutes);
 
 // LB Aliases for new architecture
+console.log('[BOOT] MOUNTING /api/products routes...');
 app.use('/api/products', productRoutes);
+console.log('[BOOT] MOUNTING /api/order routes...');
 app.use('/api/order', orderRoutes);
+console.log('[BOOT] MOUNTING /api/auth routes...');
 app.use('/api/auth', authRoutes); // catches /api/auth/login, /api/auth/register, /api/auth/verify
+console.log('[BOOT] ALL ROUTES MOUNTED ✅');
 
 // Health check endpoints for AWS ALB
 app.get('/', (req, res) => {
@@ -60,7 +66,7 @@ async function seedProducts() {
         const count = parseInt(rows[0].count, 10);
         if (count < 10) {
             await db.query('DELETE FROM "Product"');
-            
+
             const products = [
                 { id: 1, name: 'StellarBook Pro', price: 120000, imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80' },
                 { id: 2, name: 'StellarPhone 15', price: 80000, imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80' },
@@ -99,7 +105,7 @@ const startServer = async () => {
             console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
             console.log(`🛡️  CORS allowed for: *`);
             console.log(`==========================================\n`);
-            
+
             // Seed DB on start
             await seedProducts();
         });
