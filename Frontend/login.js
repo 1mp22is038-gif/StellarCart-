@@ -1,5 +1,5 @@
 // Use centralized config, fallback to localhost if not loaded
-const API = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "http://localhost:5000/api";
+const API = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : "/api";
 
 let registeredEmail = "";
 
