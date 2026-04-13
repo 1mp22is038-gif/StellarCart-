@@ -14,25 +14,9 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS Configuration - Robust setup
-const allowedOrigins = [
-    "http://localhost:3000",
-    "http://34.160.87.107",
-    "http://34.160.87.107:80",
-    process.env.FRONTEND_URL
-].filter(Boolean);
-
+// CORS Configuration - Simple Setup for debugging
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes("*")) {
-            callback(null, true);
-        } else {
-            console.warn(`[WARN] Blocked by CORS: ${origin}`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -119,7 +103,7 @@ const startServer = async () => {
             console.log(`\n==========================================`);
             console.log(`🚀 StellarCart API running on port ${PORT}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-            console.log(`🛡️  CORS allowed for: ${allowedOrigins.join(', ')}`);
+            console.log(`🛡️  CORS allowed for: *`);
             console.log(`==========================================\n`);
 
             // Seed DB on start
