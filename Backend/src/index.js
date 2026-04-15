@@ -14,12 +14,35 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS Configuration - Simple Setup for debugging
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+// CORS Configuration
+const allowedOrigins = [
+    'https://prajwalgowda.online',
+    'https://www.prajwalgowda.online',
+    'http://prajwalgowda.online',
+    'http://www.prajwalgowda.online',
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'http://34.160.87.107'  // GCP Load Balancer IP
+];
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.error(`[CORS] Blocked origin: ${origin}`);
+            callback(null, false); // Return false instead of throwing Error (prevents 500)
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable pre-flight across all routes
 app.use(express.json());
 
 // Main Routes
@@ -103,7 +126,7 @@ const startServer = async () => {
             console.log(`\n==========================================`);
             console.log(`🚀 StellarCart API running on port ${PORT}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-            console.log(`🛡️  CORS allowed for: *`);
+            console.log(`🛡️  CORS allowed for: ${allowedOrigins.join(', ')}`);
             console.log(`==========================================\n`);
 
             // Seed DB on start

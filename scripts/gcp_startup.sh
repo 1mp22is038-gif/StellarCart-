@@ -33,7 +33,7 @@ NODE_ENV=production
 PORT=5000
 DATABASE_URL="postgresql://app_user:StrongAppPass123@10.10.1.3:5432/app_db"
 JWT_SECRET="super-secret-key-1234"
-FRONTEND_URL="http://34.160.87.107"
+FRONTEND_URL="https://prajwalgowda.online"
 EOT
 
 # Install strict dependencies only
